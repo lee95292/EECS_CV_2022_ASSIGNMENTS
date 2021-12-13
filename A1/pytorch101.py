@@ -497,7 +497,7 @@ def normalize_columns(x):
   y= torch.Tensor()
   y = x.clone().detach()
   avg = torch.sum(y,dim=0) / y.shape[0]
-  stds = torch.sqrt(torch.sum((y-avg)**2,dim=0)) 
+  stds = torch.sqrt( torch.sum((y-avg)**2,dim=0) / (y.shape[0]-1) ) 
   y= (y-avg)/stds
   #############################################################################
   #                    TODO: Implement this function                          #
