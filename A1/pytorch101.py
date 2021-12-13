@@ -1,6 +1,4 @@
-ch
-
-
+import torch
 def hello():
   """
   This is a sample function that we will try to import and run to ensure that
@@ -91,7 +89,7 @@ def count_tensor_elements(x):
   #   You CANNOT use the built-in functions torch.numel(x) or x.numel().      #
   #############################################################################
   # Replace "pass" statement with your code
-  for n in x.shape():
+  for n in x.shape:
     num_elements = n * num_elements
   #############################################################################
   #                            END OF YOUR CODE                               #
@@ -140,7 +138,7 @@ def multiples_of_ten(start, stop):
   #                    TODO: Implement this function                          #
   #############################################################################
   # Replace "pass" statement with your code
-  x = torch.DoubleTensor((stop - start) // 10) 
+  x = torch.DoubleTensor([x for x in range(start,stop) if x%10 ==0]) 
   #############################################################################
   #                            END OF YOUR CODE                               #
   #############################################################################
@@ -173,7 +171,7 @@ def slice_indexing_practice(x):
   last_row = x[-1]
   third_col = x[:,3]
   first_two_rows_three_cols = x[:2,:3]
-  even_rows_odd_cols = x[::2,::2]
+  even_rows_odd_cols = x[::2,1::2]
   #############################################################################
   #                    TODO: Implement this function                          #
   #############################################################################
@@ -240,7 +238,7 @@ def shuffle_cols(x):
   - The third column of y is the same as the third column of x
   - The fourth column of y is the same as the second column of x
   """
-  y =torch.zeros(M,4)
+  y =torch.zeros(x.shape[0],4)
   #############################################################################
   #                    TODO: Implement this function                          #
   #############################################################################
@@ -273,7 +271,7 @@ def reverse_rows(x):
   #                    TODO: Implement this function                          #
   #############################################################################
   # Replace "pass" statement with your code
-  y=torch.flip(x,[1,])
+  y=torch.flip(x,[0,])
   #############################################################################
   #                            END OF YOUR CODE                               #
   #############################################################################
@@ -300,9 +298,9 @@ def take_one_elem_per_col(x):
   #                    TODO: Implement this function                          #
   #############################################################################
   # Replace "pass" statement with your code
-  y[0] = x[:,0]
-  y[1] = x[:,1]
-  y[2] = x[:,2]
+  y[0] = x[1,0]
+  y[1] = x[0,1]
+  y[2] = x[3,2]
   #############################################################################
   #                            END OF YOUR CODE                               #
   #############################################################################
@@ -329,7 +327,7 @@ def count_negative_entries(x):
   #############################################################################
   # Replace "pass" statement with your code
   x = torch.where(x <0, 1,0)
-  num_neg = int(np.sum(x))
+  num_neg = int(torch.sum(x))
   #############################################################################
   #                            END OF YOUR CODE                               #
   #############################################################################
@@ -349,10 +347,10 @@ def make_one_hot(x):
        In other words, if x[n] = c then y[n, c] = 1; all other elements of y are
        zeros. The dtype of y should be torch.float32.
   """
-  y = torch.zeros(x.shape[0], torch.max(x) + 1)
+  y = torch.zeros(len(x), max(x) + 1)
 
   for i,n in enumerate(x):
-    y[i,c] =1
+    y[i,n] =1
   #############################################################################
   #                    TODO: Implement this function                          #
   #############################################################################
@@ -384,7 +382,7 @@ def reshape_practice(x):
   Returns:
   - y: A reshaped version of x of shape (3, 8) as described above.
   """
-  y = x.view(3,8)
+  y = x.reshape(3,8)
   #############################################################################
   #                    TODO: Implement this function                          #
   #############################################################################
@@ -421,7 +419,7 @@ def zero_row_min(x):
   - y: Tensor of shape (M, N) that is a copy of x, except the minimum value
        along each row is replaced with 0.
   """
-  y = torch.new_tensor(x)
+  y = x.clone().detach()
   rmv, rmi = torch.min(y, dim=0)
   y[rmi] = 0
   #############################################################################
@@ -455,12 +453,18 @@ def batched_matrix_multiply(x, y, use_loop=True):
        matrix multiplication between x[i] of shape (N, M) and y[i] of shape
        (M, P). It should have the same dtype as x.
   """
-  z = None
+  z = torch.Tensor()
+  if use_loop:
+    z_list = [x[0].mm(y[0])]
+    for i in range(1,x.shape[0]):
+        z_list.append(x[i].mm(y[i]))
+    z = torch.stack(z_list)
+  else:
+    z = x.bmm(y)
   #############################################################################
   #                    TODO: Implement this function                          #
   #############################################################################
   # Replace "pass" statement with your code
-  pass
   #############################################################################
   #                            END OF YOUR CODE                               #
   #############################################################################
@@ -490,12 +494,16 @@ def normalize_columns(x):
   - y: Tensor of shape (M, N) as described above. It should have the same dtype
     as the input x.
   """
-  y = None
+  y= torch.Tensor()
+  y = x.clone().detach()
+  avg = torch.sum(y,dim=0) / y.shape[0]
+  stds = torch.sqrt(torch.sum((y-avg)**2,dim=0)) 
+  y= (y-avg)/stds
   #############################################################################
   #                    TODO: Implement this function                          #
   #############################################################################
   # Replace "pass" statement with your code
-  pass
+  
   #############################################################################
   #                            END OF YOUR CODE                               #
   #############################################################################
@@ -535,12 +543,14 @@ def mm_on_gpu(x, w):
   Returns:
   - y: Tensor of shape (A, C) as described above. It should not be in GPU.
   """
-  y = None
+  x_g=x.cuda()
+  w_g=w.cuda()
+  y = x.mm(w)
+  y =y.to('cpu')
   #############################################################################
   #                    TODO: Implement this function                          #
   #############################################################################
   # Replace "pass" statement with your code
-  pass
   #############################################################################
   #                            END OF YOUR CODE                               #
   #############################################################################

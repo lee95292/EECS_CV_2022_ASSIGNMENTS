@@ -97,7 +97,7 @@ def compute_distances_one_loop(x_train, x_test):
   # same datatype and device as x_train
   num_train = x_train.shape[0]
   num_test = x_test.shape[0]
-  dists = x_train.new_zeros(num_train, num_test)
+  dists = x_train.new_zeros(num_train, num_test)  
   ##############################################################################
   # TODO: Implement this function using only a single loop over x_train.       #
   #                                                                            #
@@ -105,7 +105,8 @@ def compute_distances_one_loop(x_train, x_test):
   # functions from torch.nn or torch.nn.functional.                            #
   ##############################################################################
   # Replace "pass" statement with your code
-  pass
+  for i in range(num_train):
+    dists[i] = torch.sum(torch.square(x_train[i] - x_test[0:x_test.shape[0]]), dim=list(range(1,len(x_test.shape))))
   ##############################################################################
   #                             END OF YOUR CODE                               #
   ##############################################################################
@@ -141,8 +142,7 @@ def compute_distances_no_loops(x_train, x_test):
   # Initialize dists to be a tensor of shape (num_train, num_test) with the
   # same datatype and device as x_train
   num_train = x_train.shape[0]
-  num_test = x_test.shape[0]
-  dists = x_train.new_zeros(num_train, num_test)
+  num_test = x_test.shape[0] 
   ##############################################################################
   # TODO: Implement this function without using any explicit loops and without #
   # creating any intermediate tensors with O(num_train * num_test) elements.   #
@@ -154,11 +154,16 @@ def compute_distances_no_loops(x_train, x_test):
   #       and a matrix multiply.                                               #
   ##############################################################################
   # Replace "pass" statement with your code
-  pass
+
+  dists_tmp = torch.zeros(x_train.shape[0], *x_test.shape) 
+  x_train_stack = torch.stack([x_train]*num_test,dim=1)
+  dists_tmp = torch.square(x_train_stack - x_test)
+
+  dists_tmp = torch.sum(dists_tmp, dim=list(range(2,len(dists_tmp.shape))))
   ##############################################################################
   #                             END OF YOUR CODE                               #
   ##############################################################################
-  return dists
+  return dists_tmp
 
 
 def predict_labels(dists, y_train, k=1):
