@@ -199,7 +199,11 @@ def predict_labels(dists, y_train, k=1):
   # samples. Hint: Look up the function torch.topk                             #
   ##############################################################################
   # Replace "pass" statement with your code
-  pass
+  values, indices = torch.topk(dists, k, dim=0, largest=False)
+  print(values,indices)
+  for i in range(indices.shape[1]):
+    _, idx = torch.max(y_train[indices[:,i]].bincount(), dim = 0)
+    y_pred[i] = idx
   ##############################################################################
   #                             END OF YOUR CODE                               #
   ##############################################################################
