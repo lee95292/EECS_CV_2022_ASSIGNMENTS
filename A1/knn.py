@@ -107,6 +107,18 @@ def compute_distances_one_loop(x_train, x_test):
   # Replace "pass" statement with your code
   for i in range(num_train):
     dists[i] = torch.sum(torch.square(x_train[i] - x_test[0:x_test.shape[0]]), dim=list(range(1,len(x_test.shape))))
+  #INFO1.
+  # shape of x_train[i] :                 (D1, D2, D3 ..., Dn)
+  # shape of x_test[0:x_test.shape[0]]:   (num_test, D1, D2, D3..., Dn)
+  # x_train[i] - x_test[0:x_test.shape[0]] 계산 시, x_train[i] 은 (num_test, D1, D2, D3..., Dn)로 Broadcasting된다.
+  
+  # shape of dists[i]: (num_test, D1, D2, D3..., Dn)
+  # shape of dists   : (num_train, num_test, D1, D2, D3..., Dn)       
+  
+  #INFO2. 
+  # torch.sum에서 dim = ( 1,2,3,4...Dn) 이므로, dists[N_train][N_test][D1][D2][D3]...[Dn] 으로 표현되는 Dists의 D1 ~ Dn까지 값들을 모두 더해 하나의 값으로 만든다.
+  # 따라서, torch.sum의 dim을 list(range(1,len(x_test.shape)))로 지정해주므로써, dists의 shape는 dists[num_train][num_test]가 된다.
+
   ##############################################################################
   #                             END OF YOUR CODE                               #
   ##############################################################################
@@ -166,6 +178,9 @@ def compute_distances_no_loops(x_train, x_test):
   return dists_tmp
 
 
+# 정답 확인한 문제. 나중에 다시보기..
+## 문제 이해.
+# x_train이 없는 이유: 이미 x_train, x_test로 학습된 dists를 제공. 
 def predict_labels(dists, y_train, k=1):
   """
   Given distances between all pairs of training and test samples, predict a
@@ -200,9 +215,16 @@ def predict_labels(dists, y_train, k=1):
   ##############################################################################
   # Replace "pass" statement with your code
   values, indices = torch.topk(dists, k, dim=0, largest=False)
+  # INFO1. 
+  # return shape of topk [k, D1, D2, D3 ...] k는 Dn 위치에 존재. (현재 dim=0이므로, 0자리에 위치) dim에서 가장 작은 k개의 값 추출 (Largest=false)
+
   print(values,indices)
   for i in range(indices.shape[1]):
+    # print('y_train[indices[:,i]].bincount()',y_train[indices[:,i]].bincount())
     _, idx = torch.max(y_train[indices[:,i]].bincount(), dim = 0)
+    #INFO2. 
+    # y_train[indices[:,i]] 는  y_train에서 i번째 case의 최소거리 라벨들. 
+    #  torch.max(y_train[indices[:,i]].bincount()) 는 최소거리 라벨들중 최다득표 값,인덱스
     y_pred[i] = idx
   ##############################################################################
   #                             END OF YOUR CODE                               #
@@ -225,7 +247,8 @@ class KnnClassifier:
     # computation and simply memorize the training data.                      #
     ###########################################################################
     # Replace "pass" statement with your code
-    pass
+    self.x_train = x_train
+    self.y_train = y_train
     ###########################################################################
     #                           END OF YOUR CODE                              #
     ###########################################################################
@@ -242,14 +265,14 @@ class KnnClassifier:
     - y_test_pred: Torch tensor of shape (num_test,) giving predicted labels
       for the test samples.
     """
-    y_test_pred = None
+    dists = compute_distances_one_loop(self.x_train, x_test)
+    y_test_pred = predict_labels(dists, self.y_train , k)
     ###########################################################################
     # TODO: Implement this method. You should use the functions you wrote     #
     # above for computing distances (use the no-loop variant) and to predict  #
     # output labels.
     ###########################################################################
     # Replace "pass" statement with your code
-    pass
     ###########################################################################
     #                           END OF YOUR CODE                              #
     ###########################################################################
