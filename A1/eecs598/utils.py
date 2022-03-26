@@ -1,13 +1,22 @@
+"""
+General utilities to help with implementation
+"""
 import random
 
 import matplotlib.pyplot as plt
 import torch
-from torchvision.utils import make_grid
 
 
-"""
-Utilities to help with visualizing images and other data
-"""
+def reset_seed(number):
+    """
+    Reset random seed to the specific number
+
+    Inputs:
+    - number: A seed number to use
+    """
+    random.seed(number)
+    torch.manual_seed(number)
+    return
 
 
 def tensor_to_image(tensor):
@@ -33,18 +42,22 @@ def visualize_dataset(X_data, y_data, samples_per_class, class_list):
     - X_data: set of [batch, 3, width, height] data
     - y_data: paired label of X_data in [batch] shape
     - samples_per_class: number of samples want to present
-    - class_list: list of class names; eg,
-      ['plane', 'car', 'bird', 'cat', 'deer', 'dog', 'frog', 'horse', 'ship', 'truck']
+    - class_list: list of class names (e.g.) ['plane', 'car', 'bird', 'cat',
+      'deer', 'dog', 'frog', 'horse', 'ship', 'truck']
 
     Outputs:
     - An grid-image that visualize samples_per_class number of samples per class
     """
+
+    # Protected lazy import.
+    from torchvision.utils import make_grid
+
     img_half_width = X_data.shape[2] // 2
     samples = []
     for y, cls in enumerate(class_list):
-        tx = -4
-        ty = (img_half_width * 2 + 2) * y + (img_half_width + 2)
-        plt.text(tx, ty, cls, ha="right")
+        plt.text(
+            -4, (img_half_width * 2 + 2) * y + (img_half_width + 2), cls, ha="right"
+        )
         idxs = (y_data == y).nonzero().view(-1)
         for i in range(samples_per_class):
             idx = idxs[random.randrange(idxs.shape[0])].item()
