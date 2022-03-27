@@ -226,7 +226,7 @@ def predict_labels(dists: torch.Tensor, y_train: torch.Tensor, k: int = 1):
         _, idx = torch.max(y_train[indices[:,i]].bincount(), dim = 0)
         y_pred[i] = idx
     
-     #INFO2. 
+    #INFO2. 
     # y_train[indices[:,i]] 는  y_train에서 i번째 case의 최소거리 라벨들. 
     #  torch.max(y_train[indices[:,i]].bincount()) 는 최소거리 라벨들중 최다득표 값,인덱스
     ##########################################################################
@@ -352,7 +352,8 @@ def knn_cross_validate(
     # HINT: torch.chunk                                                      #
     ##########################################################################
     # Replace "pass" statement with your code
-    pass
+    x_train_folds = x_train.chunk(num_folds)
+    y_train_folds = y_train.chunk(num_folds)
     ##########################################################################
     #                           END OF YOUR CODE                             #
     ##########################################################################
@@ -361,7 +362,9 @@ def knn_cross_validate(
     # find when running cross-validation. After running cross-validation,
     # k_to_accuracies[k] should be a list of length num_folds giving the
     # different accuracies we found trying `KnnClassifier`s using k neighbors.
+
     k_to_accuracies = {}
+
 
     ##########################################################################
     # TODO: Perform cross-validation to find the best value of k. For each   #
@@ -373,7 +376,16 @@ def knn_cross_validate(
     # HINT: torch.cat                                                        #
     ##########################################################################
     # Replace "pass" statement with your code
-    pass
+    for k in k_choices:
+        k_to_accuracies[k] = []
+        for f in range(num_folds):
+            x_train = [*x_train_folds[:f], *x_train_folds[f+1:]]
+            x_test = x_train_folds[f]
+            y_train = [*y_train_folds[:f], *y_train_folds[f+1:]]
+            y_test = y_train_folds[f]
+            KNN_Classifier = KnnClassifier(x_train, y_train)
+
+            k_to_accuracies[k].append(KNN_Classifier.predict(x_test,k))
     ##########################################################################
     #                           END OF YOUR CODE                             #
     ##########################################################################
@@ -396,6 +408,7 @@ def knn_get_best_k(k_to_accuracies: Dict[int, List]):
         best_k: best (and smallest if there is a conflict) k value based on
             the k_to_accuracies info.
     """
+    means = map(lambda x : sum(k_to_accuracies[x])/len(k_to_accuracies))
     best_k = 0
     ##########################################################################
     # TODO: Use the results of cross-validation stored in k_to_accuracies to #
@@ -403,7 +416,9 @@ def knn_get_best_k(k_to_accuracies: Dict[int, List]):
     # the value of k that has the highest mean accuracy accross all folds.   #
     ##########################################################################
     # Replace "pass" statement with your code
-    pass
+    for i,v in enumerate(means):
+        if means[best_k] > means[i]:
+            best_k = i
     ##########################################################################
     #                           END OF YOUR CODE                             #
     ##########################################################################
