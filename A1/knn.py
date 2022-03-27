@@ -159,11 +159,8 @@ def compute_distances_no_loops(x_train: torch.Tensor, x_test: torch.Tensor):
     #       and a matrix multiply.                                           #
     ##########################################################################
     # Replace "pass" statement with your code
-    dists_tmp = torch.zeros(x_train.shape[0], *x_test.shape) 
-    x_train_stack = torch.stack([x_train]*num_test,dim=1)
-    dists_tmp = torch.square(x_train_stack - x_test)
-
-    dists_tmp = torch.sum(dists_tmp, dim=list(range(2,len(dists_tmp.shape))))
+    dists = torch.square(x_train.reshape(num_train,1, *x_test.shape[1:]) - x_test)
+    dists = torch.sum(dists, dim = list(range(2,len(dists.shape))))
     
     #INFO1.
     # shape of x_train[i] :                 (D1, D2, D3 ..., Dn)
@@ -179,8 +176,7 @@ def compute_distances_no_loops(x_train: torch.Tensor, x_test: torch.Tensor):
     ##########################################################################
     #                           END OF YOUR CODE                             #
     ##########################################################################
-    return dists
-
+    return dists_tmp
 
 def predict_labels(dists: torch.Tensor, y_train: torch.Tensor, k: int = 1):
     """
