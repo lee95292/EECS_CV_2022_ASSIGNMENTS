@@ -52,6 +52,9 @@ def compute_distances_two_loops(x_train: torch.Tensor, x_test: torch.Tensor):
     num_train = x_train.shape[0]
     num_test = x_test.shape[0]
     dists = x_train.new_zeros(num_train, num_test)
+    for i in range(num_train):
+        for j in range(num_test):
+            dists[i][j] = torch.sum(torch.square(x_train[i] - x_test[j]))
     ##########################################################################
     # TODO: Implement this function using a pair of nested loops over the    #
     # training data and the test data.                                       #
@@ -60,7 +63,6 @@ def compute_distances_two_loops(x_train: torch.Tensor, x_test: torch.Tensor):
     # functions from torch.nn or torch.nn.functional.                        #
     ##########################################################################
     # Replace "pass" statement with your code
-    pass
     ##########################################################################
     #                           END OF YOUR CODE                             #
     ##########################################################################
@@ -104,7 +106,8 @@ def compute_distances_one_loop(x_train: torch.Tensor, x_test: torch.Tensor):
     # functions from torch.nn or torch.nn.functional.                        #
     ##########################################################################
     # Replace "pass" statement with your code
-    pass
+    for i in range(num_train):
+        dists[i] = torch.sum(torch.square(x_train[i] - x_test[0:x_test.shape[0]]), dim=list(range(1,len(x_test.shape))))
     ##########################################################################
     #                           END OF YOUR CODE                             #
     ##########################################################################
@@ -156,7 +159,23 @@ def compute_distances_no_loops(x_train: torch.Tensor, x_test: torch.Tensor):
     #       and a matrix multiply.                                           #
     ##########################################################################
     # Replace "pass" statement with your code
-    pass
+    dists_tmp = torch.zeros(x_train.shape[0], *x_test.shape) 
+    x_train_stack = torch.stack([x_train]*num_test,dim=1)
+    dists_tmp = torch.square(x_train_stack - x_test)
+
+    dists_tmp = torch.sum(dists_tmp, dim=list(range(2,len(dists_tmp.shape))))
+    
+    #INFO1.
+    # shape of x_train[i] :                 (D1, D2, D3 ..., Dn)
+    # shape of x_test[0:x_test.shape[0]]:   (num_test, D1, D2, D3..., Dn)
+    # x_train[i] - x_test[0:x_test.shape[0]] 계산 시, x_train[i] 은 (num_test, D1, D2, D3..., Dn)로 Broadcasting된다.
+
+    # shape of dists[i]: (num_test, D1, D2, D3..., Dn)
+    # shape of dists   : (num_train, num_test, D1, D2, D3..., Dn)       
+
+    #INFO2. 
+    # torch.sum에서 dim = ( 1,2,3,4...Dn) 이므로, dists[N_train][N_test][D1][D2][D3]...[Dn] 으로 표현되는 Dists의 D1 ~ Dn까지 값들을 모두 더해 하나의 값으로 만든다.
+    # 따라서, torch.sum의 dim을 list(range(1,len(x_test.shape)))로 지정해주므로써, dists의 shape는 dists[num_train][num_test]가 된다.
     ##########################################################################
     #                           END OF YOUR CODE                             #
     ##########################################################################
@@ -192,14 +211,24 @@ def predict_labels(dists: torch.Tensor, y_train: torch.Tensor, k: int = 1):
     """
     num_train, num_test = dists.shape
     y_pred = torch.zeros(num_test, dtype=torch.int64)
-    ##########################################################################
-    # TODO: Implement this function. You may use an explicit loop over the   #
-    # test samples.                                                          #
-    #                                                                        #
-    # HINT: Look up the function torch.topk                                  #
-    ##########################################################################
+    ##############################################################################
+    # TODO: Implement this function. You may use an explicit loop over the test  #
+    # samples. Hint: Look up the function torch.topk                             #
+    ##############################################################################
     # Replace "pass" statement with your code
-    pass
+    values, indices = torch.topk(dists, k, dim=0, largest=False)
+    # INFO1. 
+    # return shape of topk [k, D1, D2, D3 ...] k는 Dn 위치에 존재. (현재 dim=0이므로, 0자리에 위치) dim에서 가장 작은 k개의 값 추출 (Largest=false)
+
+    print(values,indices)
+    for i in range(indices.shape[1]):
+        # print('y_train[indices[:,i]].bincount()',y_train[indices[:,i]].bincount())
+        _, idx = torch.max(y_train[indices[:,i]].bincount(), dim = 0)
+        y_pred[i] = idx
+    
+     #INFO2. 
+    # y_train[indices[:,i]] 는  y_train에서 i번째 case의 최소거리 라벨들. 
+    #  torch.max(y_train[indices[:,i]].bincount()) 는 최소거리 라벨들중 최다득표 값,인덱스
     ##########################################################################
     #                           END OF YOUR CODE                             #
     ##########################################################################
@@ -223,7 +252,8 @@ class KnnClassifier:
         # `self.x_train` and `self.y_train`, accordingly.                    #
         ######################################################################
         # Replace "pass" statement with your code
-        pass
+        self.x_train = x_train
+        self.y_train = y_train
         ######################################################################
         #                         END OF YOUR CODE                           #
         ######################################################################
@@ -240,14 +270,15 @@ class KnnClassifier:
             y_test_pred: Tensor of shape (num_test,) giving predicted labels
                 for the test samples.
         """
-        y_test_pred = None
         ######################################################################
         # TODO: Implement this method. You should use the functions you      #
         # wrote above for computing distances (use the no-loop variant) and  #
         # to predict output labels.                                          #
         ######################################################################
+        dists = compute_distances_no_loops(self.x_train, x_test)
+        y_test_pred = predict_labels(dists, self.y_train , k)        
+        ######################################################################
         # Replace "pass" statement with your code
-        pass
         ######################################################################
         #                         END OF YOUR CODE                           #
         ######################################################################

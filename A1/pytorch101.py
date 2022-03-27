@@ -22,12 +22,13 @@ def create_sample_tensor() -> Tensor:
     Returns:
         Tensor of shape (3, 2) as described above.
     """
-    x = None
+    x = torch.zeros(3,2)
+    x[0][1] = 10
+    x[1][0] = 100
     ##########################################################################
     #                     TODO: Implement this function                      #
     ##########################################################################
     # Replace "pass" statement with your code
-    pass
     ###########################################################################
     #                            END OF YOUR CODE                             #
     ###########################################################################
@@ -62,7 +63,9 @@ def mutate_tensor(
     #                     TODO: Implement this function                      #
     ##########################################################################
     # Replace "pass" statement with your code
-    pass
+    for t,index in enumerate(indices):
+        i,j = index
+    x[i][j] = values[t]
     ##########################################################################
     #                            END OF YOUR CODE                            #
     ##########################################################################
@@ -85,13 +88,14 @@ def count_tensor_elements(x: Tensor) -> int:
     Returns:
         num_elements: An integer giving the number of scalar elements in x
     """
-    num_elements = None
+    num_elements = 1
     ##########################################################################
     #                      TODO: Implement this function                     #
     #   You CANNOT use the built-in functions torch.numel(x) or x.numel().   #
     ##########################################################################
     # Replace "pass" statement with your code
-    pass
+    for n in x.shape:
+        num_elements = n * num_elements
     ##########################################################################
     #                            END OF YOUR CODE                            #
     ##########################################################################
@@ -108,12 +112,11 @@ def create_tensor_of_pi(M: int, N: int) -> Tensor:
     Returns:
         x: A tensor of shape (M, N) filled with the value 3.14
     """
-    x = None
+    x = torch.full((M,N),3.14)    
     ##########################################################################
     #         TODO: Implement this function. It should take one line.        #
     ##########################################################################
     # Replace "pass" statement with your code
-    pass
     ##########################################################################
     #                            END OF YOUR CODE                            #
     ##########################################################################
@@ -139,7 +142,7 @@ def multiples_of_ten(start: int, stop: int) -> Tensor:
     #                      TODO: Implement this function                     #
     ##########################################################################
     # Replace "pass" statement with your code
-    pass
+    x = torch.DoubleTensor([x for x in range(start,stop) if x%10 ==0]) 
     ##########################################################################
     #                            END OF YOUR CODE                            #
     ##########################################################################
@@ -170,10 +173,10 @@ def slice_indexing_practice(x: Tensor) -> Tuple[Tensor, Tensor, Tensor, Tensor]:
     """
     assert x.shape[0] >= 3
     assert x.shape[1] >= 5
-    last_row = None
-    third_col = None
-    first_two_rows_three_cols = None
-    even_rows_odd_cols = None
+    last_row = x[-1]
+    third_col = x[:,3]
+    first_two_rows_three_cols = x[:2,:3]
+    even_rows_odd_cols = x[::2,1::2]
     ##########################################################################
     #                      TODO: Implement this function                     #
     ##########################################################################
@@ -221,7 +224,7 @@ def slice_assignment_practice(x: Tensor) -> Tensor:
     #                      TODO: Implement this function                     #
     ##########################################################################
     # Replace "pass" statement with your code
-    pass
+    x[2,3] = x[3,2]
     ##########################################################################
     #                            END OF YOUR CODE                            #
     ##########################################################################
@@ -244,12 +247,14 @@ def shuffle_cols(x: Tensor) -> Tensor:
         - The third column of y is the same as the third column of x
         - The fourth column of y is the same as the second column of x
     """
-    y = None
+    y[:,:2] = x[:,[0,0]]
+    y[:,2] = x[:,2]
+    y[:,3] = x[:,1]     
     ##########################################################################
     #                      TODO: Implement this function                     #
     ##########################################################################
     # Replace "pass" statement with your code
-    pass
+    
     ##########################################################################
     #                            END OF YOUR CODE                            #
     ##########################################################################
@@ -274,12 +279,12 @@ def reverse_rows(x: Tensor) -> Tensor:
             the second row of y should be equal to the second to last row of x,
             and so on.
     """
-    y = None
+    y=torch.flip(x,[0,])
     ##########################################################################
     #                      TODO: Implement this function                     #
     ##########################################################################
     # Replace "pass" statement with your code
-    pass
+    
     ##########################################################################
     #                            END OF YOUR CODE                            #
     ##########################################################################
@@ -303,12 +308,14 @@ def take_one_elem_per_col(x: Tensor) -> Tensor:
         - The second element of y is the first element of the second column of x
         - The third element of y is the fourth element of the third column of x
     """
-    y = None
+    y = torch.zeros(3,)
     ##########################################################################
     #                      TODO: Implement this function                     #
     ##########################################################################
     # Replace "pass" statement with your code
-    pass
+    y[0] = x[1,0]
+    y[1] = x[0,1]
+    y[2] = x[3,2]
     ##########################################################################
     #                            END OF YOUR CODE                            #
     ##########################################################################
@@ -331,15 +338,10 @@ def make_one_hot(x: List[int]) -> Tensor:
             of x[n]; in other words, if x[n] = c then y[n, c] = 1; all other
             elements of y are zeros. The dtype of y should be torch.float32.
     """
-    y = None
-    ##########################################################################
-    #                      TODO: Implement this function                     #
-    ##########################################################################
-    # Replace "pass" statement with your code
-    pass
-    ##########################################################################
-    #                            END OF YOUR CODE                            #
-    ##########################################################################
+    
+    y = torch.zeros(len(x), max(x)+1)
+    t= list(range(len(x)))
+    y[t , x] = 1
     return y
 
 
@@ -368,12 +370,12 @@ def sum_positive_entries(x: Tensor) -> Tensor:
     Returns:
         pos_sum: Python integer giving the sum of all positive values in x
     """
-    pos_sum = None
+    x = torch.where(x>0, x, torch.tensor(0.))
+    pos_sum = x.sum()
     ##########################################################################
     #                      TODO: Implement this function                     #
     ##########################################################################
     # Replace "pass" statement with your code
-    pass
     ##########################################################################
     #                            END OF YOUR CODE                            #
     ##########################################################################
@@ -399,7 +401,7 @@ def reshape_practice(x: Tensor) -> Tensor:
     Returns:
         y: A reshaped version of x of shape (3, 8) as described above.
     """
-    y = None
+    y = x.reshape(3,8)
     ##########################################################################
     #                      TODO: Implement this function                     #
     ##########################################################################
@@ -438,16 +440,16 @@ def zero_row_min(x: Tensor) -> Tensor:
         y: Tensor of shape (M, N) that is a copy of x, except the minimum value
             along each row is replaced with 0.
     """
-    y = None
+    rmv, rmi = torch.min(x, dim=1)
+    x[list(range(x.size(0))), rmi.tolist()] = 0 
     ##########################################################################
     #                      TODO: Implement this function                     #
     ##########################################################################
     # Replace "pass" statement with your code
-    pass
     ##########################################################################
     #                            END OF YOUR CODE                            #
     ##########################################################################
-    return y
+    return x
 
 
 def batched_matrix_multiply(
@@ -494,12 +496,15 @@ def batched_matrix_multiply_loop(x: Tensor, y: Tensor) -> Tensor:
             of matrix multiplication between x[i] of shape (N, M) and y[i] of
             shape (M, P). The output z should have the same dtype as x.
     """
-    z = None
+    z = torch.Tensor()
+    z_list = [x[0].mm(y[0])]
+    for i in range(1,x.shape[0]):
+        z_list.append(x[i].mm(y[i]))
+    z = torch.stack(z_list)
     ###########################################################################
     #                      TODO: Implement this function                      #
     ###########################################################################
     # Replace "pass" statement with your code
-    pass
     ###########################################################################
     #                           END OF YOUR CODE                              #
     ###########################################################################
@@ -525,12 +530,11 @@ def batched_matrix_multiply_noloop(x: Tensor, y: Tensor) -> Tensor:
             of matrix multiplication between x[i] of shape (N, M) and y[i] of
             shape (M, P). The output z should have the same dtype as x.
     """
-    z = None
+    z = x.bmm(y)
     ###########################################################################
     #                      TODO: Implement this function                      #
     ###########################################################################
     # Replace "pass" statement with your code
-    pass
     ###########################################################################
     #                            END OF YOUR CODE                             #
     ###########################################################################
@@ -560,12 +564,15 @@ def normalize_columns(x: Tensor) -> Tensor:
         y: Tensor of shape (M, N) as described above. It should have the same
             dtype as the input x.
     """
-    y = None
+    y= torch.Tensor()
+    y = x.clone().detach()
+    avg = torch.sum(y,dim=0) / y.shape[0]
+    stds = torch.sqrt( torch.sum((y-avg)**2,dim=0) / (y.shape[0]-1) ) 
+    y= (y-avg)/stds
     ##########################################################################
     #                      TODO: Implement this function                     #
     ##########################################################################
     # Replace "pass" statement with your code
-    pass
     ##########################################################################
     #                            END OF YOUR CODE                            #
     ##########################################################################
@@ -607,12 +614,14 @@ def mm_on_gpu(x: Tensor, w: Tensor) -> Tensor:
     Returns:
         y: Tensor of shape (A, C) as described above. It should not be in GPU.
     """
-    y = None
+    x_g=x.cuda()
+    w_g=w.cuda()
+    y = x.mm(w)
+    y =y.to('cpu')
     ##########################################################################
     #                      TODO: Implement this function                     #
     ##########################################################################
     # Replace "pass" statement with your code
-    pass
     ##########################################################################
     #                            END OF YOUR CODE                            #
     ##########################################################################
